@@ -7,27 +7,34 @@ class Car():
     def __init__(self):
         super().__init__()
 
+
 class Road(Model):
-    def __init__(self, length, ncars):
+    def __init__(self, length, ncars, max_speed, nlanes=1):
         super().__init__()
 
         self.length = length
         self.ncars = ncars
+        self.max_speed = max_speed
 
 
-        self.grid = Grid(self.length, 1, False)
+        self.grid = Grid(self.length, nlanes, False)
 
-        self.add_car()
+        self.init_cars()
 
 
-    def add_car(self):
-        car = Car()
+    def add_car(self, pos=(0, 0)):
+        car = Car(self.max_speed)
 
-        self.grid.place_agent(car, (0, 0))
+        self.grid.place_agent(car, pos)
 
 
     def remove_car(self, car):
         self.grid.remove_agent(car)
+
+    
+    def init_cars(self):
+        for i in range(self.ncars):
+            self.add_car((i, 0))
 
 
     def step(self, t):
