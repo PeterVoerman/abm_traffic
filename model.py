@@ -1,11 +1,9 @@
+import imp
 from mesa import Model
 from mesa.space import Grid
-from mesa.datacollection import DataCollector
-from mesa.time import RandomActivation
+import matplotlib.pyplot as plt
 
-class Car():
-    def __init__(self):
-        super().__init__()
+from agent import Car
 
 
 class Road(Model):
