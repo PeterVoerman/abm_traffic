@@ -1,5 +1,5 @@
 from mesa import Model
-from mesa.space import Grid
+from mesa.space import ContinuousSpace
 import matplotlib.pyplot as plt
 
 from agent import Car
@@ -17,7 +17,7 @@ class Road(Model):
         self.n_agents = 0
         self.slow_car_list = []
 
-        self.grid = Grid(self.length, self.n_lanes, False)
+        self.space = ContinuousSpace(self.length, self.n_lanes, False)
 
         self.init_cars()
 
@@ -26,11 +26,11 @@ class Road(Model):
 
         car = Car(self.n_agents, self, self.max_speed, 0, 0)
 
-        self.grid.place_agent(car, pos)
+        self.space.place_agent(car, pos)
 
 
     def remove_car(self, car):
-        self.grid.remove_agent(car)
+        self.space.remove_agent(car)
 
     
     def init_cars(self):
@@ -41,14 +41,12 @@ class Road(Model):
         x_list = []
         y_list = []
 
-        for x in range(self.length):
-            for y in range(self.n_lanes):
-                if self.grid.grid[x][y] != None:
-                    x_list.append(x)
-                    y_list.append(y)
+        for pos in self.space._agent_points:
+            x_list.append(pos[0])
+            y_list.append(pos[1])
 
         plt.xlim(0, self.length)
-        plt.ylim(0, self.n_lanes)
+        plt.ylim(-0.5, self.n_lanes - 0.5)
         plt.scatter(x_list, y_list)
         plt.draw()
         plt.pause(0.001)
@@ -56,10 +54,9 @@ class Road(Model):
 
     def get_stats(self):
         slow_cars = 0
-        for car in self.grid:
-            if car != None:
-                if car.speed < car.pref_speed:
-                    slow_cars += 1
+        for car in self.space._index_to_agent.values():
+            if car.speed < car.pref_speed:
+                slow_cars += 1
 
         self.slow_car_list.append(slow_cars)
 
@@ -68,13 +65,11 @@ class Road(Model):
         plt.show()
 
     def step(self, t):
-        for car in self.grid:
-            if car != None:
-                car.step()
+        for car in self.space._index_to_agent.values():
+            car.step()
 
-        for car in self.grid:
-            if car != None:
-                car.advance()
+        for car in self.space._index_to_agent.values():
+            car.advance()
 
         if t % 5 == 0:
             self.add_car()
@@ -93,5 +88,5 @@ class Road(Model):
 
 road = Road(100, 5, 10)
 
-road.run_model(animate=False)
+road.run_model()
 road.plot_slow_cars()
