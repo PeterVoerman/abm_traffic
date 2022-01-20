@@ -6,12 +6,13 @@ from agent import Car
 
 
 class Road(Model):
-    def __init__(self, length, n_cars, max_speed, n_lanes=1):
+    def __init__(self, length, n_cars, max_speed, timestep, n_lanes=1):
         super().__init__()
 
         self.length = length
         self.n_cars = n_cars
         self.max_speed = max_speed
+        self.timestep = timestep
         self.n_lanes = n_lanes
 
         self.n_agents = 0
@@ -90,7 +91,7 @@ class Road(Model):
             self.step(t)
 
 
-road = Road(100, 5, 10)
+road = Road(100, 5, 10, 1)
 
 road.run_model(animate=True)
 road.plot_slow_cars()
