@@ -22,7 +22,7 @@ class Road(Model):
 
         self.init_cars()
 
-        
+        # hier een comment om te testen
 
     def add_car(self, pos=(0, 0)):
         self.n_agents += 1
@@ -35,7 +35,7 @@ class Road(Model):
     def remove_car(self, car):
         self.space.remove_agent(car)
 
-    
+
     def init_cars(self):
         for i in range(self.n_cars):
             self.add_car((i, 0))
