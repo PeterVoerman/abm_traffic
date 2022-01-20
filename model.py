@@ -22,7 +22,7 @@ class Road(Model):
 
         self.init_cars()
 
-        # hier een comment om te testen
+
 
     def add_car(self, pos=(0, 0)):
         self.n_agents += 1
