@@ -21,6 +21,8 @@ class Road(Model):
 
         self.init_cars()
 
+        
+
     def add_car(self, pos=(0, 0)):
         self.n_agents += 1
 
@@ -41,9 +43,11 @@ class Road(Model):
         x_list = []
         y_list = []
 
-        for pos in self.space._agent_points:
-            x_list.append(pos[0])
-            y_list.append(pos[1])
+        cars = self.space._index_to_agent.values()
+
+        for car in cars:
+            x_list.append(car.pos[0])
+            y_list.append(car.pos[1])
 
         plt.xlim(0, self.length)
         plt.ylim(-0.5, self.n_lanes - 0.5)
@@ -88,5 +92,5 @@ class Road(Model):
 
 road = Road(100, 5, 10)
 
-road.run_model()
+road.run_model(animate=True)
 road.plot_slow_cars()
