@@ -19,6 +19,7 @@ class Car(Agent):
 		self.vision_range = vision_range
 		self.lane = init_lane
 		self.pos = (0, self.lane)
+		self.speed_change = 0
 
 	def check_environment(self):
    		# depends on structure, if exits are present,
@@ -37,8 +38,9 @@ class Car(Agent):
 			to_check = (self.pos[0] + i, self.lane)
 			if not self.model.out_of_bounds(to_check):
 				cell = self.get_cell_contents([to_check])
+				# if cell non-empty, car is present
 				if cell:
-					speed_change = self.speed - cell[0].speed
+					self.speed_change = (self.speed - cell[0].speed)/i
 
 
 			pass
@@ -47,13 +49,28 @@ class Car(Agent):
 		# Left
 		#check_left (x amount of spaces again) for cars
 		if self.lane != self.model.nlanes - 1:
-			pass
+			for i in self.vision_range - 1:
+				to_check = (self.pos[0] + i, self.lane + 1)
+				if not self.model.out_of_bounds(to_check):
+					cell = self.get_cell_contents([to_check])
+					# if cell non-empty, car is present
+					if cell:
+						self.allow_left = False
+					else:
+						self.allow_left = True
 		# Right
 		#check_right for cars
 		# If no cars, allow change of lane (if not out of bounds)
 		if self.lane != 1:
-			pass
-		pass
+			for i in self.vision_range - 1:
+				to_check = (self.pos[0] + i, self.lane - 1)
+				if not self.model.out_of_bounds(to_check):
+					cell = self.get_cell_contents([to_check])
+					# if cell non-empty, car is present
+					if cell:
+						self.allow_right = False
+					else:
+						self.allow_right = True
 
 	def check_behind(self, vision_range):
 	# x amount of spaces behind
