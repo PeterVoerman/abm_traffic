@@ -15,16 +15,11 @@ class Road(Model):
         self.n_lanes = n_lanes
 
         self.n_agents = 0
+        self.slow_car_list = []
 
         self.grid = Grid(self.length, self.n_lanes, False)
 
-        print(self.grid.grid)
-
         self.init_cars()
-
-        plt.xlim(0, length)
-        plt.ylim(0, n_lanes)
-
 
     def add_car(self, pos=(0, 0)):
         self.n_agents += 1
@@ -52,12 +47,25 @@ class Road(Model):
                     x_list.append(x)
                     y_list.append(y)
 
+        plt.xlim(0, self.length)
+        plt.ylim(0, self.n_lanes)
         plt.scatter(x_list, y_list)
         plt.draw()
         plt.pause(0.001)
         plt.clf()
 
+    def get_stats(self):
+        slow_cars = 0
+        for car in self.grid:
+            if car != None:
+                if car.speed < car.pref_speed:
+                    slow_cars += 1
 
+        self.slow_car_list.append(slow_cars)
+
+    def plot_slow_cars(self):
+        plt.plot(range(self.step_count), self.slow_car_list)
+        plt.show()
 
     def step(self, t):
         for car in self.grid:
@@ -71,14 +79,19 @@ class Road(Model):
         if t % 5 == 0:
             self.add_car()
 
-        self.draw()
+        if self.animate:
+            self.draw()
+        self.get_stats()
 
 
-    def run_model(self, step_count=1000):
+    def run_model(self, step_count=1000, animate=True):
+        self.animate = animate
+        self.step_count = step_count
         for t in range(step_count):
             self.step(t)
 
 
 road = Road(100, 5, 10)
 
-road.run_model()
+road.run_model(animate=False)
+road.plot_slow_cars()
