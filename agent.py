@@ -6,7 +6,7 @@ from mesa.datacollection import DataCollector
 
 class Car(Agent):
 
-	def __init__(self, unique_id, model, pref_speed=100, init_speed=0, risk=1, preferred_gap=1, init_lane=0):
+	def __init__(self, unique_id, model, pref_speed=100, init_speed=0, risk=1, preferred_gap=1, init_lane=0, acceleration=5, deceleration=7):
 		"""
 		Creates a new battery with potential for battery recharge time.
 
@@ -20,10 +20,39 @@ class Car(Agent):
 		self.risk = risk
 		self.preferred_gap = preferred_gap
 		self.pos = (0, init_lane)
-		self.speed_change = 0
+		self.acceleration = acceleration
+		self.deceleration = deceleration
+
+	def accelerate(self):
+		self.speed += self.acceleration * self.model.timestep
+
+		# cap at pref_speed
+		if self.speed > self.pref_speed:
+			self.speed = self.pref_speed
+
+	def brake(self):
+		self.speed += self.deceleration * self.model.timestep
+
+		# cap at pref_speed
+		if self.speed < 0:
+			self.speed = 0
+
+	def switch_lane(self, direction):
+		if direction == 'L':
+			self.new_pos[1] = self.new_pos[1] + 1
+		elif direction == 'R':
+			self.new_pos[1] = self.new_pos[1] - 1
+
+	def move_forward(self):
+		self.new_pos[0] += self.speed * self.model.timestep
 
 	def check_environment(self):
 		"""Checks whether there are cars in the immediate neighborhood"""
+
+		# start on true and set to False if other cars are found
+		self.space_ahead = True
+		self.space_left = True
+		self.space_right = True
 
 		preferred_distance = self.speed * self.preferred_gap
 
@@ -41,80 +70,36 @@ class Car(Agent):
 			if abs(distance_after_step) < preferred_distance:
 				# same lane				
 				if self.pos[1] == neighbor.pos[1]:
-					if distance_after_step > 0:
-						print("car too close behind")
-					else:
-						print("car too close in front")
+					if distance_after_step < 0:
+						self.space_ahead = False
 
 				# neighbor is 1 lane to the right
 				if self.pos[1] - neighbor.pos[1] == 1:
-					print("car too close on the right")
+					self.space_right = False
 				if self.pos[1] - neighbor.pos[1] == -1:
-					print("car too close on the left")
-
-	# def check_environment(self):
-   	# 	# depends on structure, if exits are present,
-   	# 	# need to check for them earlier, requires e.g. circle around
-   	# 	# car to be explored. Taking exits is generally preplanned,
-   	# 	# require car to go to said exit? implementation depends on the needs of model
-	# 	self.check_front(self.vision_range)
-	# 	self.check_sides()
-	# 	self.check_behind(self.vision_range)
-
-	# def check_front(self):
-   	# 	# x amount of spaces in front
-	# 	for i in self.vision_range:
-	# 	# Check for cars in range, if too close (depends on self.risk), take action
-	# 	# e.g. speed down : self.speed--
-	# 		to_check = (self.pos[0] + i, self.lane)
-	# 		if not self.model.out_of_bounds(to_check):
-	# 			cell = self.get_cell_contents([to_check])
-	# 			# if cell non-empty, car is present
-	# 			if cell:
-	# 				self.speed_change = (self.speed - cell[0].speed)/i
-
-
-	# 		pass
-
-	# def check_sides(self, vision_range):
-	# 	# Left
-	# 	#check_left (x amount of spaces again) for cars
-	# 	if self.lane != self.model.nlanes - 1:
-	# 		for i in self.vision_range - 1:
-	# 			to_check = (self.pos[0] + i, self.lane + 1)
-	# 			if not self.model.out_of_bounds(to_check):
-	# 				cell = self.get_cell_contents([to_check])
-	# 				# if cell non-empty, car is present
-	# 				if cell:
-	# 					self.allow_left = False
-	# 				else:
-	# 					self.allow_left = True
-	# 	# Right
-	# 	#check_right for cars
-	# 	# If no cars, allow change of lane (if not out of bounds)
-	# 	if self.lane != 1:
-	# 		for i in self.vision_range - 1:
-	# 			to_check = (self.pos[0] + i, self.lane - 1)
-	# 			if not self.model.out_of_bounds(to_check):
-	# 				cell = self.get_cell_contents([to_check])
-	# 				# if cell non-empty, car is present
-	# 				if cell:
-	# 					self.allow_right = False
-	# 				else:
-	# 					self.allow_right = True
-
-	# def check_behind(self, vision_range):
-	# # x amount of spaces behind
-	# 	for dist in vision_range:
-	# 	# Check for cars in range, if too close (depends on self.risk), take action
-	# 	# e.g. speed up : self.speed++
-	# 		pass
+					self.space_left = False
 
 	def step(self):
+		self.new_pos = self.pos
+
+		if self.speed < self.pref_speed:
+			self.accelerate()
+
 		self.check_environment()
-		pass
-	#self.new_position = new
+
+		if self.space_ahead:
+			if self.space_right:
+				self.switch_lane('R')
+		else:
+			# note: maybe implement chance
+			if self.space_left:
+				self.switch_lane('L')
+
+			else:
+				# note: maybe implement adaptive braking
+				self.brake()
+		
+		self.move_forward()
 
 	def advance(self):
 		pass
-	#self.move(self.new_position)
