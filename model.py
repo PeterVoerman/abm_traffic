@@ -70,6 +70,9 @@ class Road(Model):
         plt.show()
 
     def step(self, t):
+
+        # Set every car ready for a move, move when every move is decided.
+
         for car in self.space._index_to_agent.values():
             car.step()
 
