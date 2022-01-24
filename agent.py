@@ -102,7 +102,6 @@ class Car(Agent):
 		self.move_forward()
 
 	def advance(self):
-		print(self.new_pos)
 		if self.new_pos[0] > self.model.length:
 			self.model.space.remove_agent(self)
 			return
