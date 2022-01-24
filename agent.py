@@ -51,8 +51,8 @@ class Car(Agent):
 
 		# start on true and set to False if other cars are found
 		self.space_ahead = True
-		self.space_left = True
-		self.space_right = True
+		self.space_left = self.pos[1] != self.model.n_lanes - 1
+		self.space_right = self.pos[1] != 0
 
 		preferred_distance = self.speed * self.preferred_gap
 
@@ -74,13 +74,13 @@ class Car(Agent):
 						self.space_ahead = False
 
 				# neighbor is 1 lane to the right
-				if self.pos[1] - neighbor.pos[1] == 1:
+				if self.pos[1] - neighbor.pos[1] == 1 or self.pos[1] == 0:
 					self.space_right = False
 				if self.pos[1] - neighbor.pos[1] == -1:
 					self.space_left = False
 
 	def step(self):
-		self.new_pos = self.pos
+		self.new_pos = list(self.pos)
 
 		if self.speed < self.pref_speed:
 			self.accelerate()
@@ -102,4 +102,11 @@ class Car(Agent):
 		self.move_forward()
 
 	def advance(self):
-		pass
+		print(self.new_pos)
+		if self.new_pos[0] > self.model.length:
+			self.model.space.remove_agent(self)
+			return
+
+		self.model.space.move_agent(self, tuple(self.new_pos))
+
+		
