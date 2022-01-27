@@ -58,7 +58,7 @@ class Car(Agent):
 
 		# cars that are preferred distance in front and in the next lane have
 		# this distance. Therefore it is the taken radius for neighbor detection
-		neighbors = self.model.space.get_neighbors(self.pos, (1 + preferred_distance ** 2), include_center = False)
+		neighbors = self.model.space.get_neighbors(self.pos, (1 + preferred_distance ** 2) ** (1 / 2), include_center = False)
 		
 		for neighbor in neighbors:
 			# positive distance means this car is in front of its neighbor
