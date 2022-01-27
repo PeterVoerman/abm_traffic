@@ -2,11 +2,28 @@ from mesa import Model
 from mesa.space import ContinuousSpace
 import matplotlib.pyplot as plt
 
+from mesa.time import SimultaneousActivation
+from mesa.datacollection import DataCollector
+
 from agent import Car
+import numpy as np
+
+
+def get_avg_speed(model):
+    speeds = [a.speed for a in model.schedule.agents]
+    return np.mean(speeds)
+
+def get_slow_cars(model):
+    slow_cars = 0
+    for car in model.schedule.agents:
+        if car.speed < car.pref_speed:
+            slow_cars += 1
+
+    return slow_cars
 
 
 class Road(Model):
-    def __init__(self, length, n_cars, max_speed, timestep, n_lanes=1):
+    def __init__(self, length=100, n_cars=50, max_speed=100, timestep=1, n_lanes=1):
         super().__init__()
 
         self.length = length
@@ -19,9 +36,18 @@ class Road(Model):
         self.slow_car_list = []
 
         self.space = ContinuousSpace(self.length, self.n_lanes, False)
-
+        self.schedule = SimultaneousActivation(self)
         self.init_cars()
 
+        self.datacollector = DataCollector(
+            model_reporters={
+                "Speeds": get_avg_speed,
+                "Slow cars": get_slow_cars,
+            },
+            agent_reporters={"Speed": lambda agent: agent.speed},
+            )
+
+        self.datacollector.collect(self)
 
 
     def add_car(self, pos=(0, 0)):
@@ -30,10 +56,14 @@ class Road(Model):
         car = Car(self.n_agents, self, self.max_speed, 0, 0)
 
         self.space.place_agent(car, pos)
+        self.schedule.add(car)
 
 
     def remove_car(self, car):
+        self.n_agents -= 1
+
         self.space.remove_agent(car)
+        self.schedule.remove(car)
 
 
     def init_cars(self):
@@ -70,11 +100,12 @@ class Road(Model):
         plt.show()
 
     def step(self, t):
-        for car in self.space._index_to_agent.values():
-            car.step()
+        # for car in self.space._index_to_agent.values():
+        #     car.step()
 
-        for car in self.space._index_to_agent.values():
-            car.advance()
+        # for car in self.space._index_to_agent.values():
+        #     car.advance()
+        self.schedule.step()
 
         if t % 5 == 0:
             self.add_car()
@@ -82,6 +113,10 @@ class Road(Model):
         if self.animate:
             self.draw()
         self.get_stats()
+        self.datacollector.collect(self)
+        # Dit werkt ook om de huidige positie te krijgen
+        # frame = get_agent_vars_dataframe()
+        # pos = frame["pos"]
 
 
     def run_model(self, step_count=1000, animate=True):
@@ -91,7 +126,10 @@ class Road(Model):
             self.step(t)
 
 
-road = Road(100, 5, 10, 1)
 
-road.run_model(animate=True)
-road.plot_slow_cars()
+if __name__ == "__main__":
+
+    road = Road(100, 5, 10, 1)
+
+    road.run_model(animate=True)
+    road.plot_slow_cars()
