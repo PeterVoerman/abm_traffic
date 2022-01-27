@@ -6,7 +6,7 @@ from mesa.datacollection import DataCollector
 
 class Car(Agent):
 
-	def __init__(self, unique_id, model, pref_speed=100, init_speed=0, risk=1, preferred_gap=1, init_lane=0, acceleration=5, deceleration=7):
+	def __init__(self, unique_id, model, pref_speed=100, init_speed=0, risk=1, preferred_gap=1, init_lane=0, acceleration=5, deceleration=-7):
 		"""
 		Creates a new battery with potential for battery recharge time.
 

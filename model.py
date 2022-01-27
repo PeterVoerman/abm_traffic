@@ -53,11 +53,13 @@ class Road(Model):
     def add_car(self, pos=(0, 0)):
         self.n_agents += 1
 
-        pref_speed = np.random.normal(self.max_speed, 5 / 3.6)
+        lane = np.random.randint(0, self.n_lanes)
 
-        car = Car(self.n_agents, self, pref_speed, 0, 0)
+        pref_speed = np.random.normal(self.max_speed, 15 / 3.6)
 
-        self.space.place_agent(car, pos)
+        car = Car(self.n_agents, self, pref_speed, pref_speed, init_lane=lane)
+
+        self.space.place_agent(car, car.pos)
         self.schedule.add(car)
 
 
@@ -76,15 +78,23 @@ class Road(Model):
         x_list = []
         y_list = []
 
-        cars = self.space._index_to_agent.values()
+        cars = self.schedule.agents
+        color_list = []
+
 
         for car in cars:
             x_list.append(car.pos[0])
             y_list.append(car.pos[1])
+            if car.speed < car.pref_speed:
+                color_list.append("red")
+            elif car.speed > car.pref_speed:
+                color_list.append("purple")
+            else:
+                color_list.append("green")
 
         plt.xlim(0, self.length)
         plt.ylim(-0.5, self.n_lanes - 0.5)
-        plt.scatter(x_list, y_list)
+        plt.scatter(x_list, y_list, c=color_list)
         plt.draw()
         plt.pause(0.001)
         plt.clf()
@@ -114,16 +124,16 @@ class Road(Model):
         if t % 1 == 0:
             self.add_car()
 
-        if self.animate:
+        if self.animate and t % 10 == 0:
             self.draw()
-        self.get_stats()
+
         self.datacollector.collect(self)
         # Dit werkt ook om de huidige positie te krijgen
         # frame = get_agent_vars_dataframe()
         # pos = frame["pos"]
 
 
-    def run_model(self, step_count=1000, animate=True):
+    def run_model(self, step_count=10000, animate=True):
         self.animate = animate
         self.step_count = step_count
         for t in range(step_count):
@@ -138,7 +148,7 @@ class Road(Model):
 #     road.run_model(animate=True)
 #     road.plot_slow_cars()
 
-road = Road(10000, 5, 100/3.6, 1, 2)
+road = Road(10000, 5, 100/3.6, 0.1, 2)
 
-road.run_model(animate=True)
-road.plot_slow_cars()
+road.run_model(animate=False)
+
