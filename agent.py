@@ -4,9 +4,11 @@ from mesa.time import RandomActivation, SimultaneousActivation
 
 from mesa.datacollection import DataCollector
 
+import numpy as np
+
 class Car(Agent):
 
-	def __init__(self, unique_id, model, pref_speed=100, init_speed=0, risk=1, preferred_gap=1, init_lane=0, acceleration=5, deceleration=-7):
+	def __init__(self, unique_id, model, pref_speed=100, init_speed=0, risk=1, preferred_gap=1, init_lane=0, acceleration=5, deceleration=-7, braking_chance=0.5):
 		"""
 		Creates a new battery with potential for battery recharge time.
 
@@ -22,6 +24,7 @@ class Car(Agent):
 		self.pos = (0, init_lane)
 		self.acceleration = acceleration
 		self.deceleration = deceleration
+		self.braking_chance = braking_chance
 
 	def accelerate(self):
 		self.speed += self.acceleration * self.model.timestep
@@ -98,6 +101,9 @@ class Car(Agent):
 			else:
 				# note: maybe implement adaptive braking
 				self.brake()
+
+		if np.random.random() < self.braking_chance:
+			self.brake()
 		
 		self.move_forward()
 

@@ -20,7 +20,13 @@ def get_slow_cars(model):
         if car.speed < car.pref_speed:
             slow_cars += 1
 
-    return slow_cars
+    return slow_cars / len(model.schedule.agents)
+
+def get_min_speeds(model):
+
+    speeds = [a.speed for a in model.schedule.agents]
+    return min(speeds)
+
 
 
 class Road(Model):
@@ -43,6 +49,7 @@ class Road(Model):
             model_reporters={
                 "Speeds": get_avg_speed,
                 "Slow_cars": get_slow_cars,
+                "Min_speed":get_min_speeds,
             },
             agent_reporters={"Speed": lambda agent: agent.speed},
             )
@@ -121,7 +128,7 @@ class Road(Model):
         #     car.advance()
         self.schedule.step()
 
-        if t % 1 == 0:
+        if t % 10 == 0:
             self.add_car()
 
         if self.animate and t % 10 == 0:
@@ -133,11 +140,11 @@ class Road(Model):
         # pos = frame["pos"]
 
 
-    def run_model(self, step_count=100, animate=True):
+    def run_model(self, step_count=10000, animate=True):
         self.animate = animate
         self.step_count = step_count
         for t in range(step_count):
-            print(f"Step {t+1}/{step_count}")
+            print(f"Step {t+1}/{step_count}", end='\r')
             self.step(t)
 
         # all model reporters of the datacollector
@@ -146,8 +153,17 @@ class Road(Model):
         df_agents = self.datacollector.get_agent_vars_dataframe()
 
         # resulting dataframes
-        # print(df_model)
-        # print(df_agents)
+        print(df_model)
+        print(df_agents)
+
+        plt.plot(range(0, len(df_model)), df_model['Slow_cars'])
+        plt.show()
+
+        plt.plot(range(0, len(df_model)), df_model['Speeds'])
+        plt.show()
+
+        plt.plot(range(0, len(df_model)), df_model['Min_speed'])
+        plt.show()
 
         # example of agent variables (currently only speed) at final index
         # print(df_agents.loc[100])
@@ -162,7 +178,7 @@ class Road(Model):
 #     road.run_model(animate=True)
 #     road.plot_slow_cars()
 
-road = Road(10000, 5, 100/3.6, 0.1, 2)
+road = Road(10000, 5, 100/3.6, 0.1, 1)
 
-road.run_model(animate=True)
+road.run_model(animate=False)
 
