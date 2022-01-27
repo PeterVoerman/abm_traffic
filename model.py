@@ -1,6 +1,7 @@
 from mesa import Model
 from mesa.space import ContinuousSpace
 import matplotlib.pyplot as plt
+import numpy as np
 
 from mesa.time import SimultaneousActivation
 from mesa.datacollection import DataCollector
@@ -53,7 +54,9 @@ class Road(Model):
     def add_car(self, pos=(0, 0)):
         self.n_agents += 1
 
-        car = Car(self.n_agents, self, self.max_speed, 0, 0)
+        pref_speed = np.random.normal(self.max_speed, 5 / 3.6)
+
+        car = Car(self.n_agents, self, pref_speed, 0, 0)
 
         self.space.place_agent(car, pos)
         self.schedule.add(car)
@@ -103,11 +106,13 @@ class Road(Model):
         # for car in self.space._index_to_agent.values():
         #     car.step()
 
+        # Set every car ready for a move, move when every move is decided.
+
         # for car in self.space._index_to_agent.values():
         #     car.advance()
         self.schedule.step()
 
-        if t % 5 == 0:
+        if t % 1 == 0:
             self.add_car()
 
         if self.animate:
@@ -126,10 +131,14 @@ class Road(Model):
             self.step(t)
 
 
+# if __name__ == "__main__":
 
-if __name__ == "__main__":
+#     road = Road(100, 5, 10, 1)
 
-    road = Road(100, 5, 10, 1)
+#     road.run_model(animate=True)
+#     road.plot_slow_cars()
 
-    road.run_model(animate=True)
-    road.plot_slow_cars()
+road = Road(10000, 5, 100/3.6, 1, 2)
+
+road.run_model(animate=False)
+road.plot_slow_cars()
