@@ -42,12 +42,12 @@ class Road(Model):
         self.datacollector = DataCollector(
             model_reporters={
                 "Speeds": get_avg_speed,
-                "Slow cars": get_slow_cars,
+                "Slow_cars": get_slow_cars,
             },
             agent_reporters={"Speed": lambda agent: agent.speed},
             )
 
-        self.datacollector.collect(self)
+        #self.datacollector.collect(self)
 
 
     def add_car(self, pos=(0, 0)):
@@ -133,13 +133,27 @@ class Road(Model):
         # pos = frame["pos"]
 
 
-    def run_model(self, step_count=10000, animate=True):
+    def run_model(self, step_count=100, animate=True):
         self.animate = animate
         self.step_count = step_count
         for t in range(step_count):
             print(f"Step {t+1}/{step_count}")
             self.step(t)
 
+        # all model reporters of the datacollector
+        df_model = self.datacollector.get_model_vars_dataframe()
+        # all agent reporters of the datacollector
+        df_agents = self.datacollector.get_agent_vars_dataframe()
+
+        # resulting dataframes
+        # print(df_model)
+        # print(df_agents)
+
+        # example of agent variables (currently only speed) at final index
+        # print(df_agents.loc[100])
+
+        # example of model reporter category
+        # print(df_model["Slow_cars"])
 
 # if __name__ == "__main__":
 
@@ -150,5 +164,5 @@ class Road(Model):
 
 road = Road(10000, 5, 100/3.6, 0.1, 2)
 
-road.run_model(animate=False)
+road.run_model(animate=True)
 
