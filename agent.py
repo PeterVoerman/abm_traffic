@@ -103,7 +103,9 @@ class Car(Agent):
 
 	def advance(self):
 		if self.new_pos[0] > self.model.length:
+			self.model.schedule.remove(self)
 			self.model.space.remove_agent(self)
+
 			return
 
 		self.model.space.move_agent(self, tuple(self.new_pos))

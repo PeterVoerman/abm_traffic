@@ -38,7 +38,6 @@ class Road(Model):
 
         self.space = ContinuousSpace(self.length, self.n_lanes, False)
         self.schedule = SimultaneousActivation(self)
-        self.init_cars()
 
         self.datacollector = DataCollector(
             model_reporters={
@@ -128,6 +127,7 @@ class Road(Model):
         self.animate = animate
         self.step_count = step_count
         for t in range(step_count):
+            print(f"Step {t+1}/{step_count}")
             self.step(t)
 
 
@@ -140,5 +140,5 @@ class Road(Model):
 
 road = Road(10000, 5, 100/3.6, 1, 2)
 
-road.run_model(animate=False)
+road.run_model(animate=True)
 road.plot_slow_cars()
