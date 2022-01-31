@@ -8,7 +8,8 @@ import numpy as np
 
 class Car(Agent):
 
-	def __init__(self, unique_id, model, pref_speed=100, init_speed=0, risk=1, preferred_gap=1, init_lane=0, acceleration=5, deceleration=-7, braking_chance=0.5):
+	def __init__(self, unique_id, model, pref_speed=100, init_speed=0, risk=1,
+	 preferred_gap=1, init_lane=0, acceleration=5, deceleration=-7, braking_chance=0.5, switching_chance=0.1):
 		"""
 		Creates a new battery with potential for battery recharge time.
 
@@ -25,6 +26,7 @@ class Car(Agent):
 		self.acceleration = acceleration
 		self.deceleration = deceleration
 		self.braking_chance = braking_chance
+		self.switching_chance = switching_chance
 
 	def accelerate(self):
 		self.speed += self.acceleration * self.model.timestep
@@ -77,7 +79,7 @@ class Car(Agent):
 						self.space_ahead = False
 
 				# neighbor is 1 lane to the right
-				if self.pos[1] - neighbor.pos[1] == 1 or self.pos[1] == 0:
+				if self.pos[1] - neighbor.pos[1] == 1:# or self.pos[1] == 0:
 					self.space_right = False
 				if self.pos[1] - neighbor.pos[1] == -1:
 					self.space_left = False
@@ -96,6 +98,7 @@ class Car(Agent):
 		else:
 			# note: maybe implement chance
 			if self.space_left:
+				#if np.random.random() > self.switching_chance:
 				self.switch_lane('L')
 
 			else:
@@ -115,5 +118,3 @@ class Car(Agent):
 			return
 
 		self.model.space.move_agent(self, tuple(self.new_pos))
-
-		

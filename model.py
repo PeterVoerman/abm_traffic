@@ -135,9 +135,6 @@ class Road(Model):
             self.draw()
 
         self.datacollector.collect(self)
-        # Dit werkt ook om de huidige positie te krijgen
-        # frame = get_agent_vars_dataframe()
-        # pos = frame["pos"]
 
 
     def run_model(self, step_count=10000, animate=True):
@@ -153,8 +150,8 @@ class Road(Model):
         df_agents = self.datacollector.get_agent_vars_dataframe()
 
         # resulting dataframes
-        print(df_model)
-        print(df_agents)
+        # print(df_model)
+        # print(df_agents)
 
         plt.plot(range(0, len(df_model)), df_model['Slow_cars'])
         plt.show()
@@ -178,7 +175,8 @@ class Road(Model):
 #     road.run_model(animate=True)
 #     road.plot_slow_cars()
 
-road = Road(10000, 5, 100/3.6, 0.1, 1)
+if __name__ == "__main__":
+    road = Road(10000, 5, 100/3.6, 0.1, 1)
 
-road.run_model(animate=False)
+    road.run_model(animate=False)
 
