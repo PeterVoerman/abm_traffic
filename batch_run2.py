@@ -32,7 +32,8 @@ def get_min_speeds(model):
 
 
 class Road(Model):
-    def __init__(self, length=3000, n_cars=50, max_speed=100, timestep=1, step_count=3000, start_measurement=200, n_lanes=3, sigma_pref_speed=0.15, braking_chance=0.5):
+    def __init__(self, length=3000, n_cars=50, max_speed=100, timestep=1, step_count=2500, start_measurement=500, n_lanes=3, sigma_pref_speed=0.15, braking_chance=0.5):
+
         super().__init__()
 
         self.length = length
@@ -98,7 +99,11 @@ class Road(Model):
 
         for t in range(self.start_measurement):
             self.schedule.step()
-
+        
+        # reset distance to 0 so that the measurement can begin
+        for car in self.space._index_to_agent.values():
+            car.distance = 0
+        
 # parameter lists for each parameter to be tested in batch run
 # br_params = {
 #     "max_speed": [100, 120, 130],
@@ -110,9 +115,9 @@ class Road(Model):
 
 br_params = {
     "max_speed": [100],
-    "braking_chance": [0, 0.25, 0.5],
-    "n_cars": [80],
-    "sigma_pref_speed": [0.05, 0.15],
+    "braking_chance": [0.5],
+    "n_cars": [400],
+    "sigma_pref_speed": [0.15],
 
 }
 
@@ -120,7 +125,7 @@ br = BatchRunner(
     Road,
     br_params,
     iterations=1,
-    max_steps=5000,
+    max_steps=2500,
     model_reporters={"Data Collector": lambda m: m.datacollector},
 )
 
