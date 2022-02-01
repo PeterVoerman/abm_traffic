@@ -28,9 +28,8 @@ def get_min_speeds(model):
     return min(speeds)
 
 
-
 class Road(Model):
-    def __init__(self, length=100, n_cars=50, max_speed=100, timestep=1, n_lanes=1):
+    def __init__(self, length=100, n_cars=50, max_speed=100, timestep=1, n_lanes=1, breaking_chance=0.5):
         super().__init__()
 
         self.length = length
@@ -38,6 +37,7 @@ class Road(Model):
         self.max_speed = max_speed
         self.timestep = timestep
         self.n_lanes = n_lanes
+        self.breaking_chance = breaking_chance
 
         self.n_agents = 0
         self.slow_car_list = []
@@ -56,26 +56,25 @@ class Road(Model):
 
         #self.datacollector.collect(self)
 
-
     def add_car(self, pos=(0, 0)):
         self.n_agents += 1
 
         lane = np.random.randint(0, self.n_lanes)
 
         pref_speed = np.random.normal(self.max_speed, 15 / 3.6)
+        switching_chance = np.random.normal(0.1, 0.05)
 
-        car = Car(self.n_agents, self, pref_speed, pref_speed, init_lane=lane)
+        car = Car(self.n_agents, self, pref_speed=pref_speed, init_speed=pref_speed,
+         breaking_chance=self.breaking_chance, init_lane=lane, switching_chance=switching_chance)
 
         self.space.place_agent(car, car.pos)
         self.schedule.add(car)
-
 
     def remove_car(self, car):
         self.n_agents -= 1
 
         self.space.remove_agent(car)
         self.schedule.remove(car)
-
 
     def init_cars(self):
         for i in range(self.n_cars):
@@ -167,13 +166,6 @@ class Road(Model):
 
         # example of model reporter category
         # print(df_model["Slow_cars"])
-
-# if __name__ == "__main__":
-
-#     road = Road(100, 5, 10, 1)
-
-#     road.run_model(animate=True)
-#     road.plot_slow_cars()
 
 if __name__ == "__main__":
     road = Road(10000, 5, 100/3.6, 0.1, 1)
