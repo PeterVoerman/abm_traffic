@@ -5,10 +5,11 @@ from mesa.time import RandomActivation, SimultaneousActivation
 from mesa.datacollection import DataCollector
 
 import numpy as np
+import random
 
 class Car(Agent):
     def __init__(self, unique_id, model, pref_speed=100, init_speed=0, risk=1,
-     preferred_gap=1, init_lane=0, acceleration=5, deceleration=-7, braking_chance=0.5, switching_chance=0.1):
+     preferred_gap=1, init_pos=(0, 0), acceleration=5, deceleration=-7, braking_chance=0.5, switching_chance=0.1):
         """
         Creates a new battery with potential for battery recharge time.
 
@@ -21,7 +22,7 @@ class Car(Agent):
         self.pref_speed = pref_speed
         self.risk = risk
         self.preferred_gap = preferred_gap
-        self.pos = (0, init_lane)
+        self.pos = init_pos
         self.acceleration = acceleration
         self.deceleration = deceleration
         self.braking_chance = braking_chance
@@ -93,12 +94,12 @@ class Car(Agent):
 
         if self.space_ahead:
             if self.space_right:
-                if np.random.random() > self.switching_chance:
+                if random.random() > self.switching_chance:
                     self.switch_lane('R')
         else:
             # note: maybe implement chance
             if self.space_left:
-                if np.random.random() > self.switching_chance:
+                if random.random() > self.switching_chance:
                     self.switch_lane('L')
 
             else:
@@ -111,10 +112,10 @@ class Car(Agent):
         self.move_forward()
 
     def advance(self):
-        if self.new_pos[0] > self.model.length:
-            self.model.schedule.remove(self)
-            self.model.space.remove_agent(self)
+        # if self.new_pos[0] > self.model.length:
+        #     self.model.schedule.remove(self)
+        #     self.model.space.remove_agent(self)
 
-            return
+        #     return
 
         self.model.space.move_agent(self, tuple(self.new_pos))
