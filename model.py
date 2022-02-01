@@ -30,7 +30,7 @@ def get_min_speeds(model):
 
 
 class Road(Model):
-    def __init__(self, length=100, n_cars=50, max_speed=100, timestep=1, step_count = 10000, n_lanes=1, braking_chance=0.5):
+    def __init__(self, length=100, n_cars=50, max_speed=100, timestep=1, step_count = 10000, start_measurement = 2000, n_lanes=1, braking_chance=0.5):
         super().__init__()
 
         self.length = length
@@ -38,13 +38,14 @@ class Road(Model):
         self.max_speed = max_speed
         self.timestep = timestep
         self.step_count = step_count
+        self.start_measurement = start_measurement
         self.n_lanes = n_lanes
         self.braking_chance = braking_chance
 
         self.n_agents = 0
         self.slow_car_list = []
 
-        self.space = ContinuousSpace(self.length, self.n_lanes, False)
+        self.space = ContinuousSpace(self.length, self.n_lanes, True)
         self.schedule = SimultaneousActivation(self)
 
         self.datacollector = DataCollector(
@@ -59,19 +60,13 @@ class Road(Model):
         #self.datacollector.collect(self)
 
 
-    def add_car(self, truck = False, pos=(0, 0)):
+    def add_car(self, pos=(0, 0)):
         self.n_agents += 1
 
-        if truck:
-            pref_speed = np.random.normal(90 / 3.6, 2 / 3.6)
-            switching_chance = 0
-            lane = 0
-        else:
-            pref_speed = np.random.normal(self.max_speed, 15 / 3.6)
-            switching_chance = np.random.normal(0.1, 0.05)
-            lane = np.random.randint(0, self.n_lanes)
+        pref_speed = np.random.normal(self.max_speed, 15 / 3.6)
+        switching_chance = np.random.normal(0.1, 0.05)
 
-        car = Car(self.n_agents, self, pref_speed, init_speed=pref_speed, braking_chance=self.braking_chance, init_lane=lane, switching_chance=switching_chance)
+        car = Car(self.n_agents, self, pref_speed, init_speed=pref_speed, braking_chance=self.braking_chance, init_pos=pos, switching_chance=switching_chance)
 
         self.space.place_agent(car, car.pos)
         self.schedule.add(car)
@@ -97,9 +92,7 @@ class Road(Model):
         for car in cars:
             x_list.append(car.pos[0])
             y_list.append(car.pos[1])
-            if car.truck:
-                color_list.append("blue")
-            elif car.speed < 1:
+            if car.speed < 1:
                 color_list.append("red")
             elif car.speed > car.pref_speed - 1:
                 color_list.append("green")
@@ -142,10 +135,7 @@ class Road(Model):
 
         if t % 3 == 0:
             # spawn a truck with a 0.05% probability
-            if random.random() < 0.05:
-                self.add_car(truck=True)
-            else:
-                self.add_car()
+            self.add_car()
             # self.add_car((0, 1))
             # self.add_car((500, 0))
             # self.add_car((500, 1))
@@ -155,11 +145,33 @@ class Road(Model):
 
         self.datacollector.collect(self)
 
+    def step2(self, t):
+        self.schedule.step()
+        
+        if t > self.start_measurement:
+            self.datacollector.collect(self)
+
+        if self.animate:
+            if t % 10 == 0:
+                self.draw()
+
+    def run_model2(self, animate=True):
+        self.animate = animate
+
+        # initialize the desired number of cars
+        for i in range(self.n_cars):
+            random_x = random.randint(0, self.length)
+            random_lane = random.randint(0, self.n_lanes - 1)
+            self.add_car((random_x, random_lane))
+
+        for t in range(self.step_count):
+            print(f"Step {t+1}/{self.step_count}", end='\r')
+            self.step2(t)
 
     def run_model(self, animate=True):
         self.animate = animate
         for t in range(self.step_count):
-            print(f"Step {t+1}/{self.step_count}", end='\r')
+            print(f"Step {t+1}/{self.step_count} ncars = {len(self.schedule.agents)}", end='\r')
             self.step(t)
 
         # all model reporters of the datacollector
@@ -171,14 +183,14 @@ class Road(Model):
         # print(df_model)
         # print(df_agents)
 
-        plt.plot(range(0, len(df_model)), df_model['Slow_cars'])
-        plt.show()
+        # plt.plot(range(0, len(df_model)), df_model['Slow_cars'])
+        # plt.show()
 
-        plt.plot(range(0, len(df_model)), df_model['Speeds'])
-        plt.show()
+        # plt.plot(range(0, len(df_model)), df_model['Speeds'])
+        # plt.show()
 
-        plt.plot(range(0, len(df_model)), df_model['Min_speed'])
-        plt.show()
+        # plt.plot(range(0, len(df_model)), df_model['Min_speed'])
+        # plt.show()
 
         # example of agent variables (currently only speed) at final index
         # print(df_agents.loc[100])
@@ -192,6 +204,8 @@ class Road(Model):
 
 #     road.run_model(animate=True)
 #     road.plot_slow_cars()
-
-road = Road(3000, 5, 120/3.6, 0.1, 1000, 3)
-road.run_model(animate=False)
+start = time.time()
+road = Road(3000, 300, 120/3.6, 0.1, 3000, 2000, 3)
+# road.run_model(animate=True)
+road.run_model2(animate=True)
+print(f"Time spent: {time.time() - start}")
