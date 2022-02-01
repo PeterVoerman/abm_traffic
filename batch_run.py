@@ -36,11 +36,11 @@ def get_min_speeds(model):
 
 
 class Road(Model):
-    def __init__(self, length=10000, n_cars=50, max_speed=100, timestep=1, n_lanes=1, spawn_chance=1/5, sigma_pref_speed=0.15, braking_chance=0):
+    def __init__(self, length=10000, max_speed=100, timestep=1, n_lanes=1, spawn_chance=1/5, sigma_pref_speed=0.15, braking_chance=0):
         super().__init__()
 
         self.length = length
-        self.n_cars = n_cars
+
         self.max_speed = max_speed
         self.timestep = timestep
         self.n_lanes = n_lanes
@@ -205,4 +205,4 @@ if __name__ == "__main__":
         if isinstance(br_df["Data Collector"][i], DataCollector):
             i_run_data = br_df["Data Collector"][i].get_model_vars_dataframe()
             br_step_data = br_step_data.append(i_run_data, ignore_index=True)
-    br_step_data.to_csv(".csv")
+    br_step_data.to_csv("batch.csv")
