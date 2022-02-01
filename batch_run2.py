@@ -114,7 +114,11 @@ class Road(Model):
 
         for t in range(self.start_measurement):
             self.schedule.step()
-
+        
+        # reset distance to 0 so that the measurement can begin
+        for car in self.space._index_to_agent.values():
+            car.distance = 0
+        
 # parameter lists for each parameter to be tested in batch run
 # br_params = {
 #     "max_speed": [100, 120, 130],

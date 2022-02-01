@@ -21,6 +21,7 @@ class Car(Agent):
         self.risk = risk
         self.preferred_gap = preferred_gap
         self.pos = init_pos
+        self.distance = 0
         self.acceleration = acceleration
         self.deceleration = deceleration
         self.braking_chance = braking_chance
@@ -48,6 +49,7 @@ class Car(Agent):
 
     def move_forward(self):
         self.new_pos[0] += self.speed * self.model.timestep
+        self.distance += self.speed * self.model.timestep
 
     def check_environment(self):
         """Checks whether there are cars in the immediate neighborhood"""
