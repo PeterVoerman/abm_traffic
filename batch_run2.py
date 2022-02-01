@@ -58,7 +58,7 @@ class Road(Model):
                 "Slow_cars": get_slow_cars,
                 "Min_speed": get_min_speeds,
             },
-            agent_reporters={"Speed": lambda agent: agent.speed},
+            agent_reporters={"distance": "distance"},
             )
         
         self.init_model()
@@ -103,15 +103,7 @@ class Road(Model):
         # reset distance to 0 so that the measurement can begin
         for car in self.space._index_to_agent.values():
             car.distance = 0
-        
-# parameter lists for each parameter to be tested in batch run
-# br_params = {
-#     "max_speed": [100, 120, 130],
-#     "braking_chance": [0, 0.25, 0.5],
-#     "spawn_chance": [1/5, 1/4, 1/3],
-#     "sigma_pref_speed": [0.05, 0.15],
 
-# }
 
 br_params = {
     "max_speed": [100],
@@ -125,8 +117,9 @@ br = BatchRunner(
     Road,
     br_params,
     iterations=1,
-    max_steps=2500,
+    max_steps=1000,
     model_reporters={"Data Collector": lambda m: m.datacollector},
+    agent_reporters={"distance": "distance"},
 )
 
 if __name__ == "__main__":
@@ -138,3 +131,6 @@ if __name__ == "__main__":
             i_run_data = br_df["Data Collector"][i].get_model_vars_dataframe()
             br_step_data = br_step_data.append(i_run_data, ignore_index=True)
     br_step_data.to_csv("test.csv")
+
+    br_agent_df = br.get_agent_vars_dataframe()
+    br_agent_df["distance"].to_csv("test2.csv", header=False)

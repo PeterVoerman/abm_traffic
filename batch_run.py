@@ -131,15 +131,6 @@ class Road(Model):
         # example of model reporter category
         # print(df_model["Slow_cars"])
 
-# parameter lists for each parameter to be tested in batch run
-# br_params = {
-#     "max_speed": [100, 120, 130],
-#     "braking_chance": [0, 0.25, 0.5],
-#     "spawn_chance": [1/5, 1/4, 1/3],
-#     "sigma_pref_speed": [0.05, 0.15],
-
-# }
-
 br_params = {
     "max_speed": [100],
     "braking_chance": [0, 0.5],
