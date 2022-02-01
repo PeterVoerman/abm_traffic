@@ -37,7 +37,7 @@ def get_min_speeds(model):
 
 
 class Road(Model):
-    def __init__(self, length=100, n_cars=50, max_speed=100, timestep=1, step_count = 3000, start_measurement = 2000, n_lanes=1, sigma_pref_speed=0.15, braking_chance=0.5):
+    def __init__(self, length=3000, n_cars=50, max_speed=100, timestep=1, step_count = 2500, start_measurement = 500, n_lanes=3, sigma_pref_speed=0.15, braking_chance=0.5):
         super().__init__()
 
         self.length = length
@@ -89,31 +89,6 @@ class Road(Model):
         for i in range(self.n_cars):
             self.add_car((i, 0))
 
-    def draw(self):
-        x_list = []
-        y_list = []
-
-        cars = self.schedule.agents
-        color_list = []
-
-        for car in cars:
-            x_list.append(car.pos[0])
-            y_list.append(car.pos[1])
-            if car.speed < 1:
-                color_list.append("red")
-            elif car.speed > car.pref_speed - 1:
-                color_list.append("green")
-            else:
-                color_list.append("orange")
-
-        plt.xlim(0, self.length)
-        plt.ylim(-0.5, self.n_lanes - 0.5)
-        plt.scatter(x_list, y_list, c=color_list)
-
-        plt.draw()
-        plt.pause(0.001)
-        plt.clf()
-
     def get_stats(self):
         slow_cars = 0
         for car in self.space._index_to_agent.values():
@@ -149,11 +124,19 @@ class Road(Model):
 
 # }
 
+# br_params = {
+#     "max_speed": [100],
+#     "braking_chance": [0, 0.5],
+#     "n_cars": [200, 300, 400],
+#     "sigma_pref_speed": [0.05, 0.15],
+
+# }
+
 br_params = {
     "max_speed": [100],
-    "braking_chance": [0, 0.5],
-    "n_cars": [200, 300, 400],
-    "sigma_pref_speed": [0.05, 0.15],
+    "braking_chance": [0.5],
+    "n_cars": [400],
+    "sigma_pref_speed": [0.15],
 
 }
 
@@ -161,7 +144,7 @@ br = BatchRunner(
     Road,
     br_params,
     iterations=1,
-    max_steps=1000,
+    max_steps=2500,
     model_reporters={"Data Collector": lambda m: m.datacollector},
 )
 
