@@ -65,7 +65,6 @@ class Road(Model):
 
         #self.datacollector.collect(self)
 
-
     def add_car(self, pos=(0, 0)):
         self.n_agents += 1
 
@@ -78,54 +77,15 @@ class Road(Model):
         self.space.place_agent(car, car.pos)
         self.schedule.add(car)
 
-
     def remove_car(self, car):
         self.n_agents -= 1
 
         self.space.remove_agent(car)
         self.schedule.remove(car)
 
-
     def init_cars(self):
         for i in range(self.n_cars):
             self.add_car((i, 0))
-
-    def draw(self):
-        x_list = []
-        y_list = []
-
-        cars = self.schedule.agents
-        color_list = []
-
-
-        for car in cars:
-            x_list.append(car.pos[0])
-            y_list.append(car.pos[1])
-            if car.speed < car.pref_speed:
-                color_list.append("red")
-            elif car.speed > car.pref_speed:
-                color_list.append("purple")
-            else:
-                color_list.append("green")
-
-        plt.xlim(0, self.length)
-        plt.ylim(-0.5, self.n_lanes - 0.5)
-        plt.scatter(x_list, y_list, c=color_list)
-        plt.draw()
-        plt.pause(0.001)
-        plt.clf()
-
-    def get_stats(self):
-        slow_cars = 0
-        for car in self.space._index_to_agent.values():
-            if car.speed < car.pref_speed:
-                slow_cars += 1
-
-        self.slow_car_list.append(slow_cars)
-
-    def plot_slow_cars(self):
-        plt.plot(range(self.step_count), self.slow_car_list)
-        plt.show()
 
     def step(self):
         self.schedule.step()
@@ -141,7 +101,6 @@ class Road(Model):
 
         # self.step_count -= 1
         self.datacollector.collect(self)
-
 
     def run_model(self, step_count=10000, animate=True):
         self.animate = animate

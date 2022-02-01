@@ -12,15 +12,13 @@ import numpy as np
 import pandas as pd
 import random
 
+from itertools import product
+
 def get_avg_speed(model):
-    if len(model.schedule.agents) == 0:
-        return 0
     speeds = [a.speed for a in model.schedule.agents]
     return np.mean(speeds)
 
 def get_slow_cars(model):
-    if len(model.schedule.agents) == 0:
-        return 0
     slow_cars = 0
     for car in model.schedule.agents:
         if car.speed < car.pref_speed:
@@ -29,15 +27,12 @@ def get_slow_cars(model):
     return slow_cars / len(model.schedule.agents)
 
 def get_min_speeds(model):
-    if len(model.schedule.agents) == 0:
-        return 0
     speeds = [a.speed for a in model.schedule.agents]
     return min(speeds)
 
 
-
 class Road(Model):
-    def __init__(self, length=100, n_cars=50, max_speed=100, timestep=1, step_count = 3000, start_measurement = 2000, n_lanes=1, sigma_pref_speed=0.15, braking_chance=0.5):
+    def __init__(self, length=3000, n_cars=50, max_speed=100, timestep=1, step_count=3000, start_measurement=200, n_lanes=3, sigma_pref_speed=0.15, braking_chance=0.5):
         super().__init__()
 
         self.length = length
@@ -60,13 +55,12 @@ class Road(Model):
             model_reporters={
                 "Speeds": get_avg_speed,
                 "Slow_cars": get_slow_cars,
-                "Min_speed":get_min_speeds,
+                "Min_speed": get_min_speeds,
             },
             agent_reporters={"Speed": lambda agent: agent.speed},
             )
         
         self.init_model()
-
 
     def add_car(self, pos=(0, 0)):
         self.n_agents += 1
@@ -85,57 +79,22 @@ class Road(Model):
         self.space.remove_agent(car)
         self.schedule.remove(car)
 
-    def init_cars(self):
-        for i in range(self.n_cars):
-            self.add_car((i, 0))
-
-    def draw(self):
-        x_list = []
-        y_list = []
-
-        cars = self.schedule.agents
-        color_list = []
-
-        for car in cars:
-            x_list.append(car.pos[0])
-            y_list.append(car.pos[1])
-            if car.speed < 1:
-                color_list.append("red")
-            elif car.speed > car.pref_speed - 1:
-                color_list.append("green")
-            else:
-                color_list.append("orange")
-
-        plt.xlim(0, self.length)
-        plt.ylim(-0.5, self.n_lanes - 0.5)
-        plt.scatter(x_list, y_list, c=color_list)
-
-        plt.draw()
-        plt.pause(0.001)
-        plt.clf()
-
-    def get_stats(self):
-        slow_cars = 0
-        for car in self.space._index_to_agent.values():
-            if car.speed < car.pref_speed:
-                slow_cars += 1
-
-        self.slow_car_list.append(slow_cars)
-
-    def plot_slow_cars(self):
-        plt.plot(range(self.step_count), self.slow_car_list)
-        plt.show()
-
     def step(self):
         self.schedule.step()
         self.datacollector.collect(self)
 
     def init_model(self):
         # initialize the desired number of cars
+        l = list(product(range(0, self.length), range(0, self.n_lanes)))
         for i in range(self.n_cars):
-            random_x = random.randint(0, self.length)
-            random_lane = random.randint(0, self.n_lanes - 1)
-            self.add_car((random_x, random_lane))
+            random_pos = l.pop(random.randrange(len(l)))
+            self.add_car(pos=tuple(random_pos))
+
+
+        # for i in range(self.n_cars):
+        #     random_x = random.randint(0, self.length)
+        #     random_lane = random.randint(0, self.n_lanes - 1)
+        #     self.add_car(pos=(random_x, random_lane))
 
         for t in range(self.start_measurement):
             self.schedule.step()
@@ -151,8 +110,8 @@ class Road(Model):
 
 br_params = {
     "max_speed": [100],
-    "braking_chance": [0, 0.5],
-    "n_cars": [200, 300, 400],
+    "braking_chance": [0, 0.25, 0.5],
+    "n_cars": [80],
     "sigma_pref_speed": [0.05, 0.15],
 
 }
@@ -161,7 +120,7 @@ br = BatchRunner(
     Road,
     br_params,
     iterations=1,
-    max_steps=1000,
+    max_steps=5000,
     model_reporters={"Data Collector": lambda m: m.datacollector},
 )
 
