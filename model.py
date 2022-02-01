@@ -71,7 +71,7 @@ class Road(Model):
             switching_chance = np.random.normal(0.1, 0.05)
             lane = np.random.randint(0, self.n_lanes)
 
-        car = Car(self.n_agents, self, pref_speed, pref_speed, init_speed=pref_speed, braking_chance=self.braking_chance, init_lane=lane, switching_change=switching_chance)
+        car = Car(self.n_agents, self, pref_speed, init_speed=pref_speed, braking_chance=self.braking_chance, init_lane=lane, switching_chance=switching_chance)
 
         self.space.place_agent(car, car.pos)
         self.schedule.add(car)
