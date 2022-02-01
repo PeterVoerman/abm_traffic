@@ -29,7 +29,7 @@ def get_min_speeds(model):
 
 
 class Road(Model):
-    def __init__(self, length=100, n_cars=50, max_speed=100, timestep=1, n_lanes=1, breaking_chance=0.5):
+    def __init__(self, length=100, n_cars=50, max_speed=100, timestep=1, n_lanes=1, braking_chance=0.5):
         super().__init__()
 
         self.length = length
@@ -37,7 +37,7 @@ class Road(Model):
         self.max_speed = max_speed
         self.timestep = timestep
         self.n_lanes = n_lanes
-        self.breaking_chance = breaking_chance
+        self.braking_chance = braking_chance
 
         self.n_agents = 0
         self.slow_car_list = []
@@ -65,7 +65,7 @@ class Road(Model):
         switching_chance = np.random.normal(0.1, 0.05)
 
         car = Car(self.n_agents, self, pref_speed=pref_speed, init_speed=pref_speed,
-         breaking_chance=self.breaking_chance, init_lane=lane, switching_chance=switching_chance)
+         braking_chance=self.braking_chance, init_lane=lane, switching_chance=switching_chance)
 
         self.space.place_agent(car, car.pos)
         self.schedule.add(car)
