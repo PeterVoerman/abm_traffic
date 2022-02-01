@@ -8,7 +8,7 @@ import numpy as np
 
 class Car(Agent):
 
-	def __init__(self, unique_id, model, pref_speed=100, init_speed=0, risk=1, preferred_gap=1, init_lane=0, acceleration=5, deceleration=-7, braking_chance=0.5):
+	def __init__(self, unique_id, model, pref_speed=100, init_speed=0, risk=1, preferred_gap=1, init_lane=0, acceleration=5, deceleration=-7, braking_chance=0.5, truck = False):
 		"""
 		Creates a new battery with potential for battery recharge time.
 
@@ -25,6 +25,7 @@ class Car(Agent):
 		self.acceleration = acceleration
 		self.deceleration = deceleration
 		self.braking_chance = braking_chance
+		self.truck = truck
 
 	def accelerate(self):
 		self.speed += self.acceleration * self.model.timestep
@@ -95,7 +96,7 @@ class Car(Agent):
 				self.switch_lane('R')
 		else:
 			# note: maybe implement chance
-			if self.space_left:
+			if self.space_left and not self.truck:
 				self.switch_lane('L')
 
 			else:
