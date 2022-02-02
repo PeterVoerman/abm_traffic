@@ -12,15 +12,13 @@ import numpy as np
 import pandas as pd
 import random
 
+from itertools import product
+
 def get_avg_speed(model):
-    if len(model.schedule.agents) == 0:
-        return 0
     speeds = [a.speed for a in model.schedule.agents]
     return np.mean(speeds)
 
 def get_slow_cars(model):
-    if len(model.schedule.agents) == 0:
-        return 0
     slow_cars = 0
     for car in model.schedule.agents:
         if car.speed < car.pref_speed:
@@ -29,15 +27,13 @@ def get_slow_cars(model):
     return slow_cars / len(model.schedule.agents)
 
 def get_min_speeds(model):
-    if len(model.schedule.agents) == 0:
-        return 0
     speeds = [a.speed for a in model.schedule.agents]
     return min(speeds)
 
 
-
 class Road(Model):
-    def __init__(self, length=3000, n_cars=50, max_speed=100, timestep=1, step_count = 2500, start_measurement = 500, n_lanes=3, sigma_pref_speed=0.15, braking_chance=0.5):
+    def __init__(self, length=3000, n_cars=50, max_speed=100, timestep=1, step_count=2500, start_measurement=500, n_lanes=3, sigma_pref_speed=0.15, braking_chance=0.5):
+
         super().__init__()
 
         self.length = length
@@ -60,13 +56,12 @@ class Road(Model):
             model_reporters={
                 "Speeds": get_avg_speed,
                 "Slow_cars": get_slow_cars,
-                "Min_speed":get_min_speeds,
+                "Min_speed": get_min_speeds,
             },
-            agent_reporters={"Speed": lambda agent: agent.speed},
+            agent_reporters={"distance": "distance"},
             )
         
         self.init_model()
-
 
     def add_car(self, pos=(0, 0)):
         self.n_agents += 1
@@ -85,32 +80,22 @@ class Road(Model):
         self.space.remove_agent(car)
         self.schedule.remove(car)
 
-    def init_cars(self):
-        for i in range(self.n_cars):
-            self.add_car((i, 0))
-
-    def get_stats(self):
-        slow_cars = 0
-        for car in self.space._index_to_agent.values():
-            if car.speed < car.pref_speed:
-                slow_cars += 1
-
-        self.slow_car_list.append(slow_cars)
-
-    def plot_slow_cars(self):
-        plt.plot(range(self.step_count), self.slow_car_list)
-        plt.show()
-
     def step(self):
         self.schedule.step()
         self.datacollector.collect(self)
 
     def init_model(self):
         # initialize the desired number of cars
+        l = list(product(range(0, self.length), range(0, self.n_lanes)))
         for i in range(self.n_cars):
-            random_x = random.randint(0, self.length)
-            random_lane = random.randint(0, self.n_lanes - 1)
-            self.add_car((random_x, random_lane))
+            random_pos = l.pop(random.randrange(len(l)))
+            self.add_car(pos=tuple(random_pos))
+
+
+        # for i in range(self.n_cars):
+        #     random_x = random.randint(0, self.length)
+        #     random_lane = random.randint(0, self.n_lanes - 1)
+        #     self.add_car(pos=(random_x, random_lane))
 
         for t in range(self.start_measurement):
             self.schedule.step()
@@ -118,15 +103,6 @@ class Road(Model):
         # reset distance to 0 so that the measurement can begin
         for car in self.space._index_to_agent.values():
             car.distance = 0
-        
-# parameter lists for each parameter to be tested in batch run
-# br_params = {
-#     "max_speed": [100, 120, 130],
-#     "braking_chance": [0, 0.25, 0.5],
-#     "spawn_chance": [1/5, 1/4, 1/3],
-#     "sigma_pref_speed": [0.05, 0.15],
-
-# }
 
 br_params = {
     "max_speed": [100],
@@ -148,8 +124,9 @@ br = BatchRunner(
     Road,
     br_params,
     iterations=1,
-    max_steps=2500,
+    max_steps=1000,
     model_reporters={"Data Collector": lambda m: m.datacollector},
+    agent_reporters={"distance": "distance"},
 )
 
 if __name__ == "__main__":
@@ -161,3 +138,6 @@ if __name__ == "__main__":
             i_run_data = br_df["Data Collector"][i].get_model_vars_dataframe()
             br_step_data = br_step_data.append(i_run_data, ignore_index=True)
     br_step_data.to_csv("test.csv")
+
+    br_agent_df = br.get_agent_vars_dataframe()
+    br_agent_df["distance"].to_csv("test2.csv", header=False)
