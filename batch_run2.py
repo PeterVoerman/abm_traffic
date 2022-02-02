@@ -128,21 +128,21 @@ class Road(Model):
 
 # }
 
-# br_params = {
-#     "max_speed": [100],
-#     "braking_chance": [0, 0.5],
-#     "n_cars": [200, 300, 400],
-#     "sigma_pref_speed": [0.05, 0.15],
-
-# }
-
 br_params = {
     "max_speed": [100],
-    "braking_chance": [0.5],
-    "n_cars": [400],
-    "sigma_pref_speed": [0.15],
+    "braking_chance": [0, 0.5],
+    "n_cars": [200, 300, 400],
+    "sigma_pref_speed": [0.05, 0.15],
 
 }
+
+# br_params = {
+#     "max_speed": [100],
+#     "braking_chance": [0.5],
+#     "n_cars": [400],
+#     "sigma_pref_speed": [0.15],
+
+# }
 
 br = BatchRunner(
     Road,
