@@ -58,7 +58,9 @@ class Road(Model):
                 "Slow_cars": get_slow_cars,
                 "Min_speed": get_min_speeds,
             },
-            agent_reporters={"distance": "distance"},
+            agent_reporters={
+                "distance": "distance",
+                "pref_speed": "pref_speed"},
             )
         
         self.init_model()
@@ -105,17 +107,16 @@ class Road(Model):
             car.distance = 0
 
 br_params = {
-    "max_speed": [100],
+    "max_speed": [100, 110, 120, 130],
     "braking_chance": [0, 0.5],
     "n_cars": [200, 300, 400],
-    "sigma_pref_speed": [0.05, 0.15],
-
+    # "sigma_pref_speed": [0.05, 0.15],
 }
 
 # br_params = {
-#     "max_speed": [100],
+#     "max_speed": [130],
 #     "braking_chance": [0.5],
-#     "n_cars": [400],
+#     "n_cars": [200],
 #     "sigma_pref_speed": [0.15],
 
 # }
@@ -124,9 +125,11 @@ br = BatchRunner(
     Road,
     br_params,
     iterations=1,
-    max_steps=1000,
+    max_steps=2500,
     model_reporters={"Data Collector": lambda m: m.datacollector},
-    agent_reporters={"distance": "distance"},
+    agent_reporters={
+        "distance": "distance",
+        "pref_speed": "pref_speed"},
 )
 
 if __name__ == "__main__":
@@ -137,7 +140,14 @@ if __name__ == "__main__":
         if isinstance(br_df["Data Collector"][i], DataCollector):
             i_run_data = br_df["Data Collector"][i].get_model_vars_dataframe()
             br_step_data = br_step_data.append(i_run_data, ignore_index=True)
+            print(br_step_data)
     br_step_data.to_csv("test.csv")
 
+    br_agent_data = pd.DataFrame()
     br_agent_df = br.get_agent_vars_dataframe()
-    br_agent_df["distance"].to_csv("test2.csv", header=False)
+
+    br_agent_data["distance"] = br_agent_df["distance"]
+    br_agent_data["pref_speed"] = br_agent_df["pref_speed"]
+
+    br_agent_data.to_csv("test2.csv")
+
