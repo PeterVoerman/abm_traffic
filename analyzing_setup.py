@@ -43,18 +43,41 @@ for speed in [100, 110, 120, 130]:
                 # print(pref_speeds_slice[0:10])
 
 """STEP 3: Analyze data"""
-for braking_chance in [0, 0.5]:
-    for n_cars in [200, 300, 400]:
-        for sigma_pref_speed in [0.05, 0.15]:
-            for speed in [100, 110, 120, 130]:
+# for braking_chance in [0, 0.5]:
+#     for n_cars in [200, 300, 400]:
+#         for sigma_pref_speed in [0.05, 0.15]:
+#             for speed in [100, 110, 120, 130]:
+#                 key = params_to_key(speed, braking_chance, n_cars, sigma_pref_speed)
+
+#                 actual_speeds_slice = actual_speeds_dict[key]
+#                 pref_speeds_slice = pref_speeds_dict[key]
+
+#                 ratio = [actual_speeds_slice[i] / pref_speeds_slice[i] for i in range(len(actual_speeds_slice))]
+
+#                 plt.xlim(0, 1)
+#                 plt.title(key)
+#                 plt.hist(ratio, bins=np.arange(0, 1, 0.05))
+#                 plt.show()
+
+total_lists = []
+labels = []
+
+for speed in [100, 110, 120, 130]:
+    total_list = []
+
+    for braking_chance in [0, 0.5]:
+        for n_cars in [200, 300, 400]:
+            for sigma_pref_speed in [0.05, 0.15]:
                 key = params_to_key(speed, braking_chance, n_cars, sigma_pref_speed)
 
                 actual_speeds_slice = actual_speeds_dict[key]
-                pref_speeds_slice = pref_speeds_dict[key]
+                total_list += actual_speeds_slice
+    
+    total_lists.append(total_list)
+    labels.append(f"{speed}km/h")
 
-                ratio = [actual_speeds_slice[i] / pref_speeds_slice[i] for i in range(len(actual_speeds_slice))]
-
-                plt.xlim(0, 1)
-
-                plt.hist(ratio, bins=np.arange(0, 1, 0.05))
-                plt.show()
+plt.xlim(0, 100)
+plt.title("Speed distribution for varying maximum speeds")
+plt.hist(total_lists, bins=range(0, 100, 5), label=labels, histtype='step', stacked=False, fill=False)
+plt.legend()
+plt.show()
