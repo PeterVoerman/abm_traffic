@@ -168,6 +168,32 @@ class Road(Model):
             print(f"Step {t+1}/{self.step_count}", end='\r')
             self.step2(t)
 
+        # for car in self.space._index_to_agent.values():
+        #     print(car.distance)
+        #     car.distance = 0
+        
+        # for car in self.space._index_to_agent.values():
+        #     print(car.distance)
+        
+        # all model reporters of the datacollector
+        df_model = self.datacollector.get_model_vars_dataframe()
+        # all agent reporters of the datacollector
+        df_agents = self.datacollector.get_agent_vars_dataframe()
+
+        # resulting dataframes
+        # print(df_model)
+        # print(df_agents)
+
+        plt.plot(range(0, len(df_model)), df_model['Slow_cars'])
+        plt.show()
+
+        plt.plot(range(0, len(df_model)), df_model['Speeds'])
+        plt.show()
+
+        plt.plot(range(0, len(df_model)), df_model['Min_speed'])
+        plt.show()
+
+
     def run_model(self, animate=True):
         self.animate = animate
         for t in range(self.step_count):
@@ -183,14 +209,14 @@ class Road(Model):
         # print(df_model)
         # print(df_agents)
 
-        # plt.plot(range(0, len(df_model)), df_model['Slow_cars'])
-        # plt.show()
+        plt.plot(range(0, len(df_model)), df_model['Slow_cars'])
+        plt.show()
 
-        # plt.plot(range(0, len(df_model)), df_model['Speeds'])
-        # plt.show()
+        plt.plot(range(0, len(df_model)), df_model['Speeds'])
+        plt.show()
 
-        # plt.plot(range(0, len(df_model)), df_model['Min_speed'])
-        # plt.show()
+        plt.plot(range(0, len(df_model)), df_model['Min_speed'])
+        plt.show()
 
         # example of agent variables (currently only speed) at final index
         # print(df_agents.loc[100])
@@ -205,7 +231,7 @@ class Road(Model):
 #     road.run_model(animate=True)
 #     road.plot_slow_cars()
 start = time.time()
-road = Road(3000, 300, 120/3.6, 0.1, 3000, 2000, 3)
+road = Road(3000, 300, 120/3.6, 0.1, 100, 0, 3)
 # road.run_model(animate=True)
 road.run_model2(animate=True)
 print(f"Time spent: {time.time() - start}")
