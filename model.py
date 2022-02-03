@@ -108,7 +108,7 @@ class Road(Model):
         # plt.ylim(0, 70)
 
         plt.draw()
-        plt.pause(0.001)
+        plt.pause(0.2)
         plt.clf()
 
     def get_stats(self):
@@ -231,7 +231,7 @@ class Road(Model):
 #     road.run_model(animate=True)
 #     road.plot_slow_cars()
 start = time.time()
-road = Road(3000, 300, 120/3.6, 0.1, 100, 0, 3)
+road = Road(3000, 100, 120/3.6, 0.1, 3000, 0, 3)
 # road.run_model(animate=True)
 road.run_model2(animate=True)
 print(f"Time spent: {time.time() - start}")

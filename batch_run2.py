@@ -109,7 +109,7 @@ class Road(Model):
 br_params = {
     "max_speed": [100, 110, 120, 130],
     "braking_chance": [0, 0.5],
-    "n_cars": [200, 300, 400],
+    "n_cars": [100],
     # "sigma_pref_speed": [0.05, 0.15],
 }
 
@@ -118,7 +118,6 @@ br_params = {
 #     "braking_chance": [0.5],
 #     "n_cars": [200],
 #     "sigma_pref_speed": [0.15],
-
 # }
 
 br = BatchRunner(

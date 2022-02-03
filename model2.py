@@ -140,7 +140,7 @@ class Road(Model):
 #     road.run_model(animate=True)
 #     road.plot_slow_cars()
 start = time.time()
-road = Road(3000, 400, 100/3.6, 0.1, 3000, 2000, 3)
+road = Road(3000, 100, 100/3.6, 0.1, 3000, 0, 3)
 print(f"Time spent: {time.time() - start}")
 # road.run_model(animate=True)
 road.run_model2(animate=False)
