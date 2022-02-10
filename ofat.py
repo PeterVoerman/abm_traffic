@@ -1,7 +1,4 @@
-import pandas as pd
-import matplotlib.pyplot as plt
 import numpy as np
-from SALib.sample import saltelli
 
 from mesa import Model
 from mesa.space import ContinuousSpace
@@ -14,10 +11,10 @@ from agent import Car
 import random
 
 from mesa.batchrunner import BatchRunner
-from SALib.analyze import sobol
 
-from itertools import combinations, product
+from itertools import product
 
+# Data collection functions
 def get_avg_speed(model):
     speeds = [a.speed for a in model.schedule.agents]
     return np.mean(speeds)
@@ -34,7 +31,7 @@ def get_min_speeds(model):
     speeds = [a.speed for a in model.schedule.agents]
     return min(speeds)
 
-
+# An altered version of the model created in model.py
 class Road(Model):
     def __init__(self, length=3000, n_cars=50, max_speed=100, timestep=1, step_count=2500, start_measurement=500, n_lanes=3, sigma_pref_speed=0.15, braking_chance=0.5):
 
@@ -104,6 +101,7 @@ class Road(Model):
         for car in self.space._index_to_agent.values():
             car.distance = 0
 
+# The paramaters that will be used for the batchrunners
 br_params = {
     "max_speed": [90, 95, 100, 105, 110, 115, 120, 125, 130],
     "braking_chance": [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
@@ -122,6 +120,7 @@ model_reporters={"Avg Speed": lambda m: np.mean([a.speed for a in m.schedule.age
 
 data = {}
 
+# Run the batchrunner for the various parameters
 for param in br_params:
 
     batch = BatchRunner(Road, 
