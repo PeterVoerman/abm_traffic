@@ -30,7 +30,7 @@ def get_min_speeds(model):
 
 
 class Road(Model):
-    def __init__(self, length=100, n_cars=50, max_speed=100, timestep=1, step_count = 10000, start_measurement = 2000, n_lanes=1, braking_chance=0.5):
+    def __init__(self, length=3000, n_cars=50, max_speed=100, timestep=1, step_count = 3000, start_measurement = 2000, n_lanes=3, sigma_pref_speed=0.15, braking_chance=0.5, add_trucks=False):
         super().__init__()
 
         self.length = length
@@ -41,6 +41,8 @@ class Road(Model):
         self.start_measurement = start_measurement
         self.n_lanes = n_lanes
         self.braking_chance = braking_chance
+        self.sigma_pref_speed = sigma_pref_speed
+        self.add_trucks = add_trucks
 
         self.n_agents = 0
         self.slow_car_list = []
@@ -56,15 +58,19 @@ class Road(Model):
             },
             agent_reporters={"Speed": lambda agent: agent.speed},
             )
+        
+        self.init_model()
 
-        #self.datacollector.collect(self)
 
-
-    def add_car(self, pos=(0, 0)):
+    def add_car(self, pos=(0, 0), truck=False):
         self.n_agents += 1
 
-        pref_speed = np.random.normal(self.max_speed, 15 / 3.6)
-        switching_chance = np.random.normal(0.1, 0.05)
+        if truck:
+            pref_speed = 90 / 3.6
+            switching_chance = 1
+        else:
+            pref_speed = np.random.normal(self.max_speed, (self.sigma_pref_speed * self.max_speed) / 3.6)
+            switching_chance = np.random.normal(0.1, 0.05)
 
         car = Car(self.n_agents, self, pref_speed, init_speed=pref_speed, braking_chance=self.braking_chance, init_pos=pos, switching_chance=switching_chance)
 
@@ -88,7 +94,6 @@ class Road(Model):
         cars = self.schedule.agents
         color_list = []
 
-        # print([car.speed for car in cars])
         for car in cars:
             x_list.append(car.pos[0])
             y_list.append(car.pos[1])
@@ -103,12 +108,8 @@ class Road(Model):
         plt.ylim(-0.5, self.n_lanes - 0.5)
         plt.scatter(x_list, y_list, c=color_list)
 
-        # speeds = [a.speed for a in self.schedule.agents]
-        # plt.hist(speeds, bins = range(0, 30, 1))
-        # plt.ylim(0, 70)
-
         plt.draw()
-        plt.pause(0.2)
+        plt.pause(0.001)
         plt.clf()
 
     def get_stats(self):
@@ -123,115 +124,30 @@ class Road(Model):
         plt.plot(range(self.step_count), self.slow_car_list)
         plt.show()
 
-    def step(self, t):
-        # for car in self.space._index_to_agent.values():
-        #     car.step()
-
-        # Set every car ready for a move, move when every move is decided.
-
-        # for car in self.space._index_to_agent.values():
-        #     car.advance()
+    def step(self):
         self.schedule.step()
-
-        if t % 3 == 0:
-            # spawn a truck with a 0.05% probability
-            self.add_car()
-            # self.add_car((0, 1))
-            # self.add_car((500, 0))
-            # self.add_car((500, 1))
-
-        if self.animate and t % 10 == 0:
-            self.draw()
-
         self.datacollector.collect(self)
 
-    def step2(self, t):
-        self.schedule.step()
-        
-        if t > self.start_measurement:
-            self.datacollector.collect(self)
-
-        if self.animate:
-            if t % 10 == 0:
-                self.draw()
-
-    def run_model2(self, animate=True):
-        self.animate = animate
-
+    def init_model(self):
         # initialize the desired number of cars
         for i in range(self.n_cars):
             random_x = random.randint(0, self.length)
             random_lane = random.randint(0, self.n_lanes - 1)
-            self.add_car((random_x, random_lane))
 
+            # 5% of vehicles are trucks if add_trucks is enabled
+            if random.random() < 0.05 and self.add_trucks:
+                self.add_car((random_x, 0), truck=True)
+            else:
+                self.add_car((random_x, random_lane), truck=False)
+
+    def run_model(self, animate):
         for t in range(self.step_count):
-            print(f"Step {t+1}/{self.step_count}", end='\r')
-            self.step2(t)
+            self.schedule.step()
 
-        # for car in self.space._index_to_agent.values():
-        #     print(car.distance)
-        #     car.distance = 0
-        
-        # for car in self.space._index_to_agent.values():
-        #     print(car.distance)
-        
-        # all model reporters of the datacollector
-        df_model = self.datacollector.get_model_vars_dataframe()
-        # all agent reporters of the datacollector
-        df_agents = self.datacollector.get_agent_vars_dataframe()
-
-        # resulting dataframes
-        # print(df_model)
-        # print(df_agents)
-
-        plt.plot(range(0, len(df_model)), df_model['Slow_cars'])
-        plt.show()
-
-        plt.plot(range(0, len(df_model)), df_model['Speeds'])
-        plt.show()
-
-        plt.plot(range(0, len(df_model)), df_model['Min_speed'])
-        plt.show()
+            if animate:
+                self.draw()
 
 
-    def run_model(self, animate=True):
-        self.animate = animate
-        for t in range(self.step_count):
-            print(f"Step {t+1}/{self.step_count} ncars = {len(self.schedule.agents)}", end='\r')
-            self.step(t)
-
-        # all model reporters of the datacollector
-        df_model = self.datacollector.get_model_vars_dataframe()
-        # all agent reporters of the datacollector
-        df_agents = self.datacollector.get_agent_vars_dataframe()
-
-        # resulting dataframes
-        # print(df_model)
-        # print(df_agents)
-
-        plt.plot(range(0, len(df_model)), df_model['Slow_cars'])
-        plt.show()
-
-        plt.plot(range(0, len(df_model)), df_model['Speeds'])
-        plt.show()
-
-        plt.plot(range(0, len(df_model)), df_model['Min_speed'])
-        plt.show()
-
-        # example of agent variables (currently only speed) at final index
-        # print(df_agents.loc[100])
-
-        # example of model reporter category
-        # print(df_model["Slow_cars"])
-
-# if __name__ == "__main__":
-
-#     road = Road(100, 5, 10, 1)
-
-#     road.run_model(animate=True)
-#     road.plot_slow_cars()
-start = time.time()
-road = Road(3000, 100, 120/3.6, 0.1, 3000, 0, 3)
-# road.run_model(animate=True)
-road.run_model2(animate=True)
-print(f"Time spent: {time.time() - start}")
+if __name__ == "__main__":
+    road = Road(3000, 100, 100/3.6, 0.1, 3000, 0, 3)
+    road.run_model(animate=True)

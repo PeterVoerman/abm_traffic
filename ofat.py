@@ -1,16 +1,20 @@
+import numpy as np
+
 from mesa import Model
 from mesa.space import ContinuousSpace
-import matplotlib.pyplot as plt
-import numpy as np
 
 from mesa.time import SimultaneousActivation
 from mesa.datacollection import DataCollector
+from mesa.batchrunner import BatchRunner
 
 from agent import Car
 import random
-import time
 
+from mesa.batchrunner import BatchRunner
 
+from itertools import product
+
+# Data collection functions
 def get_avg_speed(model):
     speeds = [a.speed for a in model.schedule.agents]
     return np.mean(speeds)
@@ -24,17 +28,17 @@ def get_slow_cars(model):
     return slow_cars / len(model.schedule.agents)
 
 def get_min_speeds(model):
-
     speeds = [a.speed for a in model.schedule.agents]
     return min(speeds)
 
-
+# An altered version of the model created in model.py
 class Road(Model):
-    def __init__(self, length=3000, n_cars=50, max_speed=100, timestep=1, step_count = 3000, start_measurement = 2000, n_lanes=3, sigma_pref_speed=0.15, braking_chance=0.5):
+    def __init__(self, length=3000, n_cars=50, max_speed=100, timestep=1, step_count=2500, start_measurement=500, n_lanes=3, sigma_pref_speed=0.15, braking_chance=0.5):
+
         super().__init__()
 
         self.length = length
-        self.n_cars = n_cars
+        self.n_cars = int(n_cars)
         self.max_speed = max_speed
         self.timestep = timestep
         self.step_count = step_count
@@ -53,13 +57,14 @@ class Road(Model):
             model_reporters={
                 "Speeds": get_avg_speed,
                 "Slow_cars": get_slow_cars,
-                "Min_speed":get_min_speeds,
+                "Min_speed": get_min_speeds,
             },
-            agent_reporters={"Speed": lambda agent: agent.speed},
+            agent_reporters={
+                "distance": "distance",
+                "pref_speed": "pref_speed"},
             )
         
         self.init_model()
-
 
     def add_car(self, pos=(0, 0)):
         self.n_agents += 1
@@ -78,70 +83,56 @@ class Road(Model):
         self.space.remove_agent(car)
         self.schedule.remove(car)
 
-    def init_cars(self):
-        for i in range(self.n_cars):
-            self.add_car((i, 0))
-
-    def draw(self):
-        x_list = []
-        y_list = []
-
-        cars = self.schedule.agents
-        color_list = []
-
-        for car in cars:
-            x_list.append(car.pos[0])
-            y_list.append(car.pos[1])
-            if car.speed < 1:
-                color_list.append("red")
-            elif car.speed > car.pref_speed - 1:
-                color_list.append("green")
-            else:
-                color_list.append("orange")
-
-        plt.xlim(0, self.length)
-        plt.ylim(-0.5, self.n_lanes - 0.5)
-        plt.scatter(x_list, y_list, c=color_list)
-
-        plt.draw()
-        plt.pause(0.001)
-        plt.clf()
-
-    def get_stats(self):
-        slow_cars = 0
-        for car in self.space._index_to_agent.values():
-            if car.speed < car.pref_speed:
-                slow_cars += 1
-
-        self.slow_car_list.append(slow_cars)
-
-    def plot_slow_cars(self):
-        plt.plot(range(self.step_count), self.slow_car_list)
-        plt.show()
-
     def step(self):
         self.schedule.step()
         self.datacollector.collect(self)
 
     def init_model(self):
         # initialize the desired number of cars
+        l = list(product(range(0, self.length), range(0, self.n_lanes)))
         for i in range(self.n_cars):
-            random_x = random.randint(0, self.length)
-            random_lane = random.randint(0, self.n_lanes - 1)
-            self.add_car((random_x, random_lane))
+            random_pos = l.pop(random.randrange(len(l)))
+            self.add_car(pos=tuple(random_pos))
 
         for t in range(self.start_measurement):
             self.schedule.step()
+        
+        # reset distance to 0 so that the measurement can begin
+        for car in self.space._index_to_agent.values():
+            car.distance = 0
 
-# if __name__ == "__main__":
+# The paramaters that will be used for the batchrunners
+br_params = {
+    "max_speed": [90, 95, 100, 105, 110, 115, 120, 125, 130],
+    "braking_chance": [0, 0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1],
+    "n_cars": [50, 75, 100, 125, 150, 175, 200, 225, 250],
+    "sigma_pref_speed": [0, 0.05, 0.1, 0.15, 0.2, 0.25],
+}
 
-#     road = Road(100, 5, 10, 1)
 
-#     road.run_model(animate=True)
-#     road.plot_slow_cars()
-start = time.time()
-road = Road(3000, 100, 100/3.6, 0.1, 3000, 0, 3)
-print(f"Time spent: {time.time() - start}")
-# road.run_model(animate=True)
-road.run_model2(animate=False)
-print(f"Time spent: {time.time() - start}")
+# Set the repetitions, the amount of steps, and the amount of distinct values per variable
+replicates = 25
+max_steps = 1000
+
+# Set the outputs
+model_reporters={"Avg Speed": lambda m: np.mean([a.speed for a in m.schedule.agents])}
+    
+
+data = {}
+
+# Run the batchrunner for the various parameters
+for param in br_params:
+
+    batch = BatchRunner(Road, 
+                        max_steps=max_steps,
+                        iterations=replicates,
+                        variable_parameters={param: br_params[param]},
+                        model_reporters=model_reporters,
+                        display_progress=True)
+    
+    batch.run_all()
+    
+    data[param] = batch.get_model_vars_dataframe()
+    batch.get_model_vars_dataframe().to_csv(f"data/{param}.csv")
+
+print(data)
