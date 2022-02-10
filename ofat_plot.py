@@ -51,9 +51,6 @@ def plot_all_vars(df, param):
         df: dataframe that holds all data
         param: the parameter to be plotted
     """
-
-    #f, axs = plt.subplots(4, figsize=(7, 10))
-    
     for i, var in enumerate(br_params):
         plot_param_var_conf(data[var], var, param, i)
 

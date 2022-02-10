@@ -30,7 +30,7 @@ def get_min_speeds(model):
 
 
 class Road(Model):
-    def __init__(self, length=3000, n_cars=50, max_speed=100, timestep=1, step_count = 3000, start_measurement = 2000, n_lanes=3, sigma_pref_speed=0.15, braking_chance=0.5):
+    def __init__(self, length=3000, n_cars=50, max_speed=100, timestep=1, step_count = 3000, start_measurement = 2000, n_lanes=3, sigma_pref_speed=0.15, braking_chance=0.5, add_trucks=False):
         super().__init__()
 
         self.length = length
@@ -42,6 +42,7 @@ class Road(Model):
         self.n_lanes = n_lanes
         self.braking_chance = braking_chance
         self.sigma_pref_speed = sigma_pref_speed
+        self.add_trucks = add_trucks
 
         self.n_agents = 0
         self.slow_car_list = []
@@ -61,11 +62,15 @@ class Road(Model):
         self.init_model()
 
 
-    def add_car(self, pos=(0, 0)):
+    def add_car(self, pos=(0, 0), truck=False):
         self.n_agents += 1
 
-        pref_speed = np.random.normal(self.max_speed, (self.sigma_pref_speed * self.max_speed) / 3.6)
-        switching_chance = np.random.normal(0.1, 0.05)
+        if truck:
+            pref_speed = 90 / 3.6
+            switching_chance = 1
+        else:
+            pref_speed = np.random.normal(self.max_speed, (self.sigma_pref_speed * self.max_speed) / 3.6)
+            switching_chance = np.random.normal(0.1, 0.05)
 
         car = Car(self.n_agents, self, pref_speed, init_speed=pref_speed, braking_chance=self.braking_chance, init_pos=pos, switching_chance=switching_chance)
 
@@ -128,7 +133,12 @@ class Road(Model):
         for i in range(self.n_cars):
             random_x = random.randint(0, self.length)
             random_lane = random.randint(0, self.n_lanes - 1)
-            self.add_car((random_x, random_lane))
+
+            # 5% of vehicles are trucks if add_trucks is enabled
+            if random.random() < 0.05 and self.add_trucks:
+                self.add_car((random_x, 0), truck=True)
+            else:
+                self.add_car((random_x, random_lane), truck=False)
 
     def run_model(self, animate):
         for t in range(self.step_count):
