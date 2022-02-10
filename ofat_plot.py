@@ -9,6 +9,9 @@ br_params = {
     "sigma_pref_speed": [0, 0.05, 0.1, 0.15, 0.2, 0.25],
 }
 
+title_list = ["maximum speeds", "braking chances", "amounts of cars", "standard deviations of preferred speeds"]
+xlabel_list = ["Maximum speed (km/h)", "Braking chance", "Amount of cars", "Standard deviation of preferred speeds (sigma * max_speed)"]
+
 data = {}
 
 for param in br_params:
@@ -35,8 +38,9 @@ def plot_param_var_conf(df, var, param, i):
     plt.plot(x, y, c='k')
     plt.fill_between(x, y - err, y + err)
 
-    plt.xlabel(var)
-    plt.ylabel(param)
+    plt.xlabel(xlabel_list[i])
+    plt.ylabel("Average speed (km/h)")
+    plt.title(f"Average speed for various {title_list[i]}")
     plt.show()
 
 def plot_all_vars(df, param):
