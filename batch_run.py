@@ -104,7 +104,8 @@ class Road(Model):
 br_params = {
     "max_speed": [100, 110, 120, 130],
     "braking_chance": [0, 0.5],
-    "n_cars": [100],
+    "n_cars": [100, 200, 300],
+    "sigma_pref_speed": [0.05, 0.15]
 }
 
 # Initialize the batchrunner
@@ -129,7 +130,7 @@ if __name__ == "__main__":
             i_run_data = br_df["Data Collector"][i].get_model_vars_dataframe()
             br_step_data = br_step_data.append(i_run_data, ignore_index=True)
             print(br_step_data)
-    br_step_data.to_csv("test.csv")
+    br_step_data.to_csv("system_average.csv")
 
     br_agent_data = pd.DataFrame()
     br_agent_df = br.get_agent_vars_dataframe()
@@ -137,5 +138,5 @@ if __name__ == "__main__":
     br_agent_data["distance"] = br_agent_df["distance"]
     br_agent_data["pref_speed"] = br_agent_df["pref_speed"]
 
-    br_agent_data.to_csv("test2.csv")
+    br_agent_data.to_csv("car_average.csv")
 

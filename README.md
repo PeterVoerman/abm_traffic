@@ -6,5 +6,6 @@
 - `ofat.py`: Run the OFAT analysis
 - `ofat_plot.py`: Plot the results of `ofat.py`
 - `batch_run.py`: Used to collect agent data for different variables
-- `analyze_data.py`: ...
-- `analyze_setup.py`: ...
+- `data_plotter.py`: creates plots from the raw data
+- `system_average.csv`: contains system averages over time, such as average speed
+- `car_average.csv`: contains average data per car, such as average speed
