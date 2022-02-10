@@ -130,18 +130,14 @@ class Road(Model):
             random_lane = random.randint(0, self.n_lanes - 1)
             self.add_car((random_x, random_lane))
 
-        for t in range(self.start_measurement):
+    def run_model(self, animate):
+        for t in range(self.step_count):
             self.schedule.step()
 
-# if __name__ == "__main__":
+            if animate:
+                self.draw()
 
-#     road = Road(100, 5, 10, 1)
 
-#     road.run_model(animate=True)
-#     road.plot_slow_cars()
-start = time.time()
-road = Road(3000, 100, 100/3.6, 0.1, 3000, 0, 3)
-print(f"Time spent: {time.time() - start}")
-# road.run_model(animate=True)
-road.run_model2(animate=False)
-print(f"Time spent: {time.time() - start}")
+if __name__ == "__main__":
+    road = Road(3000, 100, 100/3.6, 0.1, 3000, 0, 3)
+    road.run_model(animate=True)
