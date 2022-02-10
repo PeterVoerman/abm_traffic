@@ -44,31 +44,32 @@ for speed in speeds:
                 actual_speeds_dict[key] = actual_speeds_slice
                 pref_speeds_dict[key] = pref_speeds_slice
 
-
 """STEP 3: Analyze data"""
-
 fig, ax = plt.subplots()
 
 colors = [(0, 0, 1, 0.25), (0, 1, 0, 0.25), (1, 0, 0, 0.25), (1, 1, 0, 0.25)]
 
 index = 0
-total_list = []
-for braking_chance in braking_chances:
-    for speed in speeds:
+
+for speed in speeds:
+    total_list = []
+    for braking_chance in [0]:
         for sigma_pref_speed in sigma_pref_speeds:
-            for n_cars in n_carss:
+            for n_cars in [300]:
                 key = params_to_key(speed, braking_chance, n_cars, sigma_pref_speed)
 
                 actual_speeds_slice = actual_speeds_dict[key]
                 total_list += actual_speeds_slice
     
-    
+    ax.hist(total_list, bins=range(0, 130, 5), label=f"speed limit: {speed}km/h", histtype='step', stacked=False, fill=True, fc=colors[index])
+    ax.vlines(sum(total_list) / len(total_list), 0, 150, color=colors[index][0:3])
     index += 1
-    
-ax.hist(total_list, bins=range(0, 130, 5), label=f"braking chance: {braking_chance}")
+    print(sum(total_list) / len(total_list))
+
 ax.set_xlim(0, 130)
+ax.set_ylim(0, 150)
 ax.set_xlabel("Speed (km/h)")
 ax.set_ylabel("Number of cars")
-ax.set_title("Total speed distribution")
-# ax.legend()
+ax.set_title("Total speed distribution for 300 cars, no random braking")
+ax.legend()
 plt.show()
